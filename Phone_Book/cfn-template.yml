@@ -35,6 +35,15 @@ Parameters:
       DBSecurityGroupIngress: # Required
         - EC2SecurityGroupId: !GetAtt WebServerSecurityGroup.GroupId
       GroupDescription: Opens port 3306 to WebServer SGs. # Required
+  MyALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !GetAtt LBSecurityGroup.GroupId
+      Subnets: !Ref Subnets
+      Type: Application 
 
 
 
