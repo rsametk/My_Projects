@@ -144,9 +144,9 @@ Parameters:
       Port: 3306
       PubliclyAccessible: false
 
-      
-    
-
-
-  
 Outputs:
+  ALBDNS:
+    Description: Public DNS Name for Phonebook ALB. 
+    Value: !Sub
+      - http://${ALBDNSName}
+      - ALBDNSName: !GetAtt MyALB.DNSName
