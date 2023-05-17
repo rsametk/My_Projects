@@ -1,0 +1,84 @@
+#Template Cloud Version 2010-09-09
+AWSTemplateFormatVersion: 2010-09-09
+
+
+#Describe the teplate 
+Description: |
+  CloudFormationTemplate  for cats caruos projecrt taht vreat 
+
+######################
+Resources:
+  
+#Create a security group (Resoursces)
+#security group open inbound port http (80) and ssh (22) (SecurityGroupIntegressRules)
+  WebserverSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: It allow traffic through port 80 and 22
+      SecurityGroupIngress: 
+      - CidrIp: "0.0.0.0/0"
+        FromPort: 80
+        ToPort: 80
+        IpProtocol: tcp
+      - CidrIp: "0.0.0.0/0"
+        FromPort: 22
+        ToPort: 22
+        IpProtocol: tcp 
+
+ 
+
+
+#Create an EC2 instance with type t2.micro (Resources)
+
+#Define a user data script (UserDate)
+#Install apache web server
+#Copy the static files from our github repo 
+#Start apache web server 
+#Create anoutput block (Outputs)
+ 
+  WebServer: 
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-06e46074ae430fba6
+      KeyName: WEB SERVER
+      InstanceType: t2.micro
+      SecurityGroupIds: 
+      - !Ref WebserverSG
+      Tags: 
+       - Key: Name
+         Value: !Sub Webserver of stack ${AWS::StackName}
+      UserData: 
+        Fn::Base64: |
+          #!/bin/bash
+          yum update -y
+          yum install httpd -y
+
+          FOLDER="https://raw.githubusercontent.com/rsametk/CatsPhotoProject/main/static-web"
+
+          cd /var/www/html
+
+          wget $FOLDER/index.html
+          wget $FOLDER/cat0.jpg
+          wget $FOLDER/cat1.jpg
+          wget $FOLDER/cat2.jpg
+          wget $FOLDER/cat3.png
+
+          systemctl enable httpd
+          systemctl start httpd
+
+
+
+
+
+
+#Return the public Ip  of the ec2 instance or its public dns name!
+#Detailed explanation for the steps
+
+Outputs:
+  WebServerPublicDNS:
+    Description: Public DNS Name of Kittens Web Server
+    Value: !Sub 
+      - http://${PublicDNS}
+      - PublicDNS: !GetAtt WebServer.PublicDnsName
+  
+  
