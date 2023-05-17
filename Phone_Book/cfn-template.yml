@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: | 
+  Cloudformation template for my phonebook application to create a loadbalancer,
+  ASG with a desired capacity of 2 Amazon Linux 2023 ec2 instance
+  and a RDS mysql instance deployed in the default VPC for NOW!
+  
+Parameters:
+  VPC:         #parameter-type-vpc-id
+    Description: Please select the default VPC
+    Type: AWS::EC2::VPC::Id
+  Subnets:     #parameter-type-subnet-id-list
+    Description: Please select at least two subnets
+    Type: <AWS::EC2::VPC::Id>
+  KeyPair: 
+    Description: Please select the ssh KeyPair
+    Type: AWS::EC2::KeyPair::KeyName
+    
+Resources:
+   
+Outputs:
