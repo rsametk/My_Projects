@@ -5,16 +5,37 @@ Description: |
   and a RDS mysql instance deployed in the default VPC for NOW!
   
 Parameters:
-  VPC:         #parameter-type-vpc-id
-    Description: Please select the default VPC
-    Type: AWS::EC2::VPC::Id
-  Subnets:     #parameter-type-subnet-id-list
-    Description: Please select at least two subnets
-    Type: <AWS::EC2::VPC::Id>
-  KeyPair: 
-    Description: Please select the ssh KeyPair
-    Type: AWS::EC2::KeyPair::KeyName
-    
-Resources:
-   
+  LBSecurityGroup: # ec2-securitygroup
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Opens Port 80 from anywhere. # Required
+      SecurityGroupIngress: 
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp       
+      VpcId: !Ref VPC
+  WebServerSecurityGroup: # ec2-securitygroup
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Opens Port 22 from anywhere and 80 from the load balancer. # Required
+      SecurityGroupIngress: 
+        - SourceSecurityGroupId: !GetAtt LBSecurityGroup.GroupId
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp    
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp       
+      VpcId: !Ref VPC
+  RDSSecurityGroup: #rds-dbsecuritygroup
+    Type: AWS::RDS::DBSecurityGroup
+    Properties:
+      DBSecurityGroupIngress: # Required
+        - EC2SecurityGroupId: !GetAtt WebServerSecurityGroup.GroupId
+      GroupDescription: Opens port 3306 to WebServer SGs. # Required
+
+
+
 Outputs:
