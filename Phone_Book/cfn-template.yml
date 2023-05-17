@@ -44,6 +44,20 @@ Parameters:
         - !GetAtt LBSecurityGroup.GroupId
       Subnets: !Ref Subnets
       Type: Application 
+  MyALBTG: # elasticloadbalancingv2-targetgroup
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckPath: /
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP
+      HealthyThresholdCount: 3
+      IpAddressType: ipv4
+      Name: TG1
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      UnhealthyThresholdCount: 5
+      VpcId: !Ref VPC
 
 
 
