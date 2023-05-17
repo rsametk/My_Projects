@@ -15,6 +15,7 @@ Parameters:
           ToPort: 80
           IpProtocol: tcp       
       VpcId: !Ref VPC
+
   WebServerSecurityGroup: # ec2-securitygroup
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -29,13 +30,15 @@ Parameters:
           ToPort: 22
           IpProtocol: tcp       
       VpcId: !Ref VPC
+
   RDSSecurityGroup: #rds-dbsecuritygroup
     Type: AWS::RDS::DBSecurityGroup
     Properties:
       DBSecurityGroupIngress: # Required
         - EC2SecurityGroupId: !GetAtt WebServerSecurityGroup.GroupId
       GroupDescription: Opens port 3306 to WebServer SGs. # Required
-  MyALB:
+
+  MyALB: # elasticloadbalacingv2-loadbalancer
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       IpAddressType: ipv4
@@ -43,7 +46,8 @@ Parameters:
       SecurityGroups: 
         - !GetAtt LBSecurityGroup.GroupId
       Subnets: !Ref Subnets
-      Type: Application 
+      Type: application
+
   MyALBTG: # elasticloadbalancingv2-targetgroup
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -58,6 +62,17 @@ Parameters:
       TargetType: instance
       UnhealthyThresholdCount: 5
       VpcId: !Ref VPC
+
+  ALBListener:     #elasticloadbalancingv2-listener
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions: # Required
+        - TargetGroupArn: !Ref MyALBTG
+          Type: forward
+      LoadBalancerArn: !Ref MyALB # Required
+      Port: 80
+      Protocol: HTTP
+
 
 
 
