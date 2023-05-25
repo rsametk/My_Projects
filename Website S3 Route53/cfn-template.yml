@@ -33,3 +33,12 @@ Resources:
                 - !Ref KittensBucket
                 - /*
             Principal: '*'
+  KittensCertificate:  # certificatemanager-certificate
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      CertificateTransparencyLoggingPreference: ENABLED
+      DomainName: !Ref KittensSubDomain # Required  certificate for kittens.domain.toplevel
+      DomainValidationOptions: 
+        - DomainName: !Ref KittensSubDomain
+          HostedZoneId: !Ref DomainName
+      ValidationMethod: DNS # DNS or EMAIL
