@@ -3,7 +3,7 @@ Description: |
   Cloudformation template that creates an s3 bucket static website hosting enabled, cloudfront distribution and a route 53 record set to deploy a static website {KittensCarousel}
 Parameters:
   DomainName: # parameter-type-hostedzone-id
-    Description: Need to  choose your hosted zone.
+    Description: Please choose your hosted zone.
     Type: AWS::Route53::HostedZone::Id
   KittensSubDomain:  # examples kittens.clarusway.com | kittens.domain.us (anySCharacter).(AnySCharacter) (regex)
     Description: Please Write a valid subdomain.
@@ -13,8 +13,12 @@ Resources:
   KittensBucket: # s3-bucket
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: PublicRead
       BucketName: !Ref KittensSubDomain
+      PublicAccessBlockConfiguration: 
+        BlockPublicPolicy: false
+      OwnershipControls:
+        Rules: 
+          - ObjectOwnership: BucketOwnerEnforced
       WebsiteConfiguration:
         IndexDocument: index.html
   KittensBucketPolicy: # s3-bucketpolicy
