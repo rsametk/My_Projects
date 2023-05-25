@@ -17,3 +17,19 @@ Resources:
       BucketName: !Ref KittensSubDomain
       WebsiteConfiguration:
         IndexDocument: index.html
+  KittensBucketPolicy: # s3-bucketpolicy
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref KittensBucket # Required
+      PolicyDocument: # Required
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join   # arn:aws:s3:::kittens.clarusway.com/*
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref KittensBucket
+                - /*
+            Principal: '*'
