@@ -58,6 +58,7 @@ Resources:
             - HEAD
           CachedMethods:
             - GET
+            - HEAD
           Compress: true
           ForwardedValues:
             QueryString: true
@@ -78,3 +79,24 @@ Resources:
         ViewerCertificate:
           AcmCertificateArn: !Ref KittensCertificate
           SslSupportMethod: sni-only
+  KittensRecordSet: # route53-recordsetgroup
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      Comment: Record set for kittens subdomain
+      HostedZoneId: !Ref DomainName
+      RecordSets: 
+        - AliasTarget: 
+            DNSName: !GetAtt KittensDistribution.DomainName
+            HostedZoneId: Z2FDTNDATAQYW2
+          Type: A
+          Name: !Ref KittensSubDomain
+Outputs:
+  KittensUrl:
+    Description: Kittens Url Endpoint {Cloudfront Distribution}
+    Value: !GetAtt KittensDistribution.DomainName
+  S3KittensWebsite:
+    Description: S3 Kittens Bucket endpoint
+    Value: !GetAtt KittensBucket.WebsiteURL
+  KittensSubDomain:
+    Description: Kittens SubDomain 
+    Value: !Ref KittensSubDomain
