@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: 2010-09-09 # cfn {Cloudformation Snippets}
+Description: |
+  Cloudformation template that creates an s3 bucket static website hosting enabled, cloudfront distribution and a route 53 record set to deploy a static website {KittensCarousel}
+Parameters:
+  DomainName: # parameter-type-hostedzone-id
+    Description: Please choose your hosted zone.
+    Type: AWS::Route53::HostedZone::Id
+  KittensSubDomain:  # examples kittens.clarusway.com | kittens.domain.us (anySCharacter).(AnySCharacter) (regex)
+    Description: Please Write a valid subdomain.
+    Type: String
+    AllowedPattern: (?!-)[a-zA-Z0-9-.]{1,63}(?<!-)
+Resources:
+  KittensBucket: # s3-bucket
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref KittensSubDomain
+      PublicAccessBlockConfiguration: 
+        BlockPublicPolicy: false
+      OwnershipControls:
+        Rules: 
+          - ObjectOwnership: BucketOwnerEnforced
+      WebsiteConfiguration:
+        IndexDocument: index.html
+  KittensBucketPolicy: # s3-bucketpolicy
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref KittensBucket # Required
+      PolicyDocument: # Required
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join   # arn:aws:s3:::kittens.clarusway.com/*
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref KittensBucket
+                - /*
+            Principal: '*'
+  KittensCertificate:  # certificatemanager-certificate
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      CertificateTransparencyLoggingPreference: ENABLED
+      DomainName: !Ref KittensSubDomain # Required  certificate for kittens.domain.toplevel
+      DomainValidationOptions: 
+        - DomainName: !Ref KittensSubDomain
+          HostedZoneId: !Ref DomainName
+      ValidationMethod: DNS # DNS or EMAIL
+  KittensDistribution: # cloudfront-distribution
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases: #CNAMEs
+          - !Ref KittensSubDomain
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: true
+            Cookies: 
+              Forward: none
+          TargetOriginId: KittensOrigin
+          ViewerProtocolPolicy: allow-all
+        Comment: Distribution for kittenscarousel.
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        Origins:
+          - Id: KittensOrigin
+            DomainName:  !Select [2, !Split ["/", !GetAtt KittensBucket.WebsiteURL]] # s3 http://s3url =>  [http:,"",s3url]
+            CustomOriginConfig:  # make sure to add the origin config  <-------
+              OriginProtocolPolicy: http-only
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          AcmCertificateArn: !Ref KittensCertificate
+          SslSupportMethod: sni-only
+  KittensRecordSet: # route53-recordsetgroup
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      Comment: Record set for kittens subdomain
+      HostedZoneId: !Ref DomainName
+      RecordSets: 
+        - AliasTarget: 
+            DNSName: !GetAtt KittensDistribution.DomainName
+            HostedZoneId: Z2FDTNDATAQYW2
+          Type: A
+          Name: !Ref KittensSubDomain
+Outputs:
+  KittensUrl:
+    Description: Kittens Url Endpoint {Cloudfront Distribution}
+    Value: !GetAtt KittensDistribution.DomainName
+  S3KittensWebsite:
+    Description: S3 Kittens Bucket endpoint
+    Value: !GetAtt KittensBucket.WebsiteURL
+  KittensSubDomain:
+    Description: Kittens SubDomain 
+    Value: !Ref KittensSubDomain
